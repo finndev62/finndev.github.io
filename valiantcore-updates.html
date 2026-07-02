@@ -28,26 +28,30 @@
         async function init() {
             const status = document.getElementById('status');
             try {
+                // 1. Yerel CSV dosyasını DuckDB'den ÖNCE düz JavaScript ile çekiyoruz
+                const csvResponse = await fetch('./updates.csv');
+                if (!csvResponse.ok) throw new Error("Could not load updates.csv file.");
+                const csvText = await csvResponse.text();
+
+                // 2. DuckDB bundle ayarlarını al
                 const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
                 const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
                 
-                // Repondaki yerel worker'ı çağırıyoruz
+                // 3. Yerel worker scriptini başlat
                 const worker = new Worker('./duckdb-browser-eh.worker.js');
-                
                 const logger = new duckdb.ConsoleLogger();
                 const db = new duckdb.AsyncDuckDB(logger, worker);
                 await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
                 
                 conn = await db.connect();
                 
-                // updates.csv için tam dosya yolunu çıkart
-                const currentDir = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
-                const csvPath = `${currentDir}/updates.csv`;
+                // 4. KESİN ÇÖZÜM: CSV verisini diske/dosyaya sormadan, doğrudan bellek içi sanal dosyaya (String olarak) yazıyoruz
+                await db.registerFileText('updates.csv', csvText);
                 
-                // KESİN ÇÖZÜM: Ek eklenti gerektirmeyen yerel CSV fonksiyonunu çalıştırıyoruz
+                // 5. İnternetten hiçbir uzantı indirmeden, gömülü CSV okuyucu ile tabloyu oluştur
                 await conn.query(`
                     CREATE TABLE updates AS 
-                    SELECT * FROM read_csv_auto('${csvPath}')
+                    SELECT * FROM read_csv_auto('updates.csv')
                 `);
 
                 status.style.display = 'none'; 
@@ -108,7 +112,6 @@
 
         document.getElementById('typeFilter').addEventListener('change', fetchData);
         document.getElementById('search').addEventListener('input', fetchData);
-        
         window.addEventListener('DOMContentLoaded', init);
     </script>
 </head>
