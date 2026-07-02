@@ -28,37 +28,32 @@
         async function init() {
             const status = document.getElementById('status');
             try {
-                // 1. Get jsDelivr bundles configurations
                 const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
                 const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
                 
-                // 2. KESİN ÇÖZÜM: Worker scriptini arka planda metin olarak indirip local Blob URL'e dönüştürüyoruz
-                const workerResponse = await fetch(bundle.mainWorker);
-                const workerBlob = await workerResponse.blob();
-                const workerURL = URL.createObjectURL(workerBlob);
+                // KESİN ÇÖZÜM: Curl/Wget ile indirdiğin yerel worker scriptini çağırıyoruz
+                const worker = new Worker('./duckdb-browser-eh.worker.js');
                 
-                // 3. Tarayıcının güvenlik duvarını (CORS) aşan local Worker yapısını başlatıyoruz
-                const worker = new Worker(workerURL);
                 const logger = new duckdb.ConsoleLogger();
                 const db = new duckdb.AsyncDuckDB(logger, worker);
                 await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
                 
                 conn = await db.connect();
                 
-                // 4. updates.json dosyasının mutlak yolunu (absolute path) çıkartıyoruz
+                // updates.json için tam dosya yolunu çıkart
                 const currentDir = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
                 const jsonPath = `${currentDir}/updates.json`;
                 
-                // 5. JSON dosyasını hafızadaki SQL tablosuna yükle
+                // JSON verisini SQL tablosuna aktar
                 await conn.query(`
                     CREATE TABLE updates AS 
                     SELECT * FROM READ_JSON_AUTO('${jsonPath}')
                 `);
 
-                status.style.display = 'none'; // Başarılıysa yükleniyor yazısını gizle
-                fetchData(); // Verileri ekrana bas
+                status.style.display = 'none'; // Yükleniyor yazısını gizle
+                fetchData(); // İlk sorguyu çalıştır ve verileri bas
             } catch (err) {
-                // Hata oluşursa detayları ekrana yazdır
+                // Herhangi bir aksilik olursa panic logunu ekrana dök
                 status.className = 'error-box';
                 status.innerHTML = `<strong>[DuckDB Panic]</strong>\nMessage: ${err.message}\n\nStack Trace:\n${err.stack || ''}`;
             }
@@ -84,7 +79,7 @@
                 const rows = result.toArray();
                 renderUI(rows);
             } catch (queryErr) {
-                console.error("SQL Error:", queryErr);
+                console.error("SQL Execution Error:", queryErr);
             }
         }
 
