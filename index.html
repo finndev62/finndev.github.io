@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finn Dev | Portfolio</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --text-color: #c9d1d9;
+            --accent-color: #58a6ff;
+            --card-bg: #161b22;
+            --card-border: #30363d;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            margin-top: 40px;
+        }
+        h1 {
+            color: #fff;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            color: #8b949e;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+        .section-title {
+            text-align: left;
+            font-size: 1.2rem;
+            color: #fff;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 5px;
+        }
+        .link-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .link-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-color);
+        }
+        .link-card h3 {
+            margin: 0 0 5px 0;
+            color: var(--accent-color);
+        }
+        .link-card p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #8b949e;
+            text-align: left;
+        }
+        .social-btn {
+            display: block;
+            background-color: #21262d;
+            border: 1px solid var(--card-border);
+            color: #fff;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        .social-btn:hover {
+            background-color: #30363d;
+        }
+        .youtube-btn:hover {
+            background-color: #cc0000;
+            border-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Finn Dev</h1>
+        <p class="subtitle">System Programmer & Security Researcher</p>
+
+        <!-- Sosyal Medya & Ana Linkler -->
+        <a href="YOUR_GITHUB_PROFILE_URL" class="social-btn" target="_blank">🐙 GitHub Profile</a>
+        <a href="YOUR_YOUTUBE_CHANNEL_URL" class="social-btn youtube-btn" target="_blank">📺 YouTube Channel</a>
+
+        <!-- Depolar Listesi -->
+        <div class="section-title">Active Projects & Labs</div>
+
+        <a href="YOUR_GITHUB_PROFILE_URL/valiantcore" class="link-card" target="_blank">
+            <h3>ValiantCore</h3>
+            <p>A custom, hobby operating system kernel focusing on x86_64 architecture and hardware driver development.</p>
+        </a>
+
+        <a href="YOUR_GITHUB_PROFILE_URL/C-Security-Lab" class="link-card" target="_blank">
+            <h3>C-Security-Lab</h3>
+            <p>Security research, exploit analysis, and low-level code testing environment for the C programming language.</p>
+        </a>
+
+        <a href="YOUR_GITHUB_PROFILE_URL/Asm-Security-lab" class="link-card" target="_blank">
+            <h3>Asm-Security-lab</h3>
+            <p>Low-level security lab focusing on Assembly (x86/ARM) analysis, reverse engineering, and shellcoding.</p>
+        </a>
+
+        <a href="YOUR_GITHUB_PROFILE_URL/C-Lab-Python-Edition" class="link-card" target="_blank">
+            <h3>C-Lab-Python-Edition</h3>
+            <p>A repository dedicated to tools, automated test scripts, and lab utilities written in Python.</p>
+        </a>
+
+    </div>
+
+</body>
+  </html>
