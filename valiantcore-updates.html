@@ -28,58 +28,55 @@
         async function init() {
             const status = document.getElementById('status');
             try {
-                // 1. En kararlı jsDelivr paket bundle yapısını seç
+                // 1. Get jsDelivr bundles configurations
                 const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
                 const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
                 
-                if (!bundle.mainWorker) {
-                    throw new Error("Failed to resolve DuckDB Web Worker bundle.");
-                }
-
-                // 2. Web Worker'ı başlat ve veritabanını instantiate et
-                const worker = new Worker(bundle.mainWorker);
+                // 2. KESİN ÇÖZÜM: Worker scriptini arka planda metin olarak indirip local Blob URL'e dönüştürüyoruz
+                const workerResponse = await fetch(bundle.mainWorker);
+                const workerBlob = await workerResponse.blob();
+                const workerURL = URL.createObjectURL(workerBlob);
+                
+                // 3. Tarayıcının güvenlik duvarını (CORS) aşan local Worker yapısını başlatıyoruz
+                const worker = new Worker(workerURL);
                 const logger = new duckdb.ConsoleLogger();
                 const db = new duckdb.AsyncDuckDB(logger, worker);
                 await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
                 
                 conn = await db.connect();
                 
-                // 3. Tarayıcının çalışma dizinine göre updates.json için mutlak yol (absolute path) oluştur
+                // 4. updates.json dosyasının mutlak yolunu (absolute path) çıkartıyoruz
                 const currentDir = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
                 const jsonPath = `${currentDir}/updates.json`;
                 
-                // 4. JSON dosyasını SQL tablosuna aktar
+                // 5. JSON dosyasını hafızadaki SQL tablosuna yükle
                 await conn.query(`
                     CREATE TABLE updates AS 
                     SELECT * FROM READ_JSON_AUTO('${jsonPath}')
                 `);
 
-                status.style.display = 'none'; // Başarılıysa yükleniyor kutusunu gizle
-                fetchData(); // İlk verileri getir
+                status.style.display = 'none'; // Başarılıysa yükleniyor yazısını gizle
+                fetchData(); // Verileri ekrana bas
             } catch (err) {
-                // Herhangi bir çökme durumunda hatayı doğrudan ekrana yazdır
+                // Hata oluşursa detayları ekrana yazdır
                 status.className = 'error-box';
-                status.innerHTML = `<strong>[DuckDB Panic]</strong>\nMessage: ${err.message}\n\nStack Trace:\n${err.stack || 'No stack trace available.'}`;
+                status.innerHTML = `<strong>[DuckDB Panic]</strong>\nMessage: ${err.message}\n\nStack Trace:\n${err.stack || ''}`;
             }
         }
 
         async function fetchData() {
             if (!conn) return;
-
             const typeFilter = document.getElementById('typeFilter').value;
             const searchTerm = document.getElementById('search').value.toLowerCase().trim();
             
-            // Temel SQL Sorgusu
+            // Dinamik SQL Sorgusu
             let query = `SELECT * FROM updates WHERE 1=1`;
-            
             if (typeFilter !== 'All') {
                 query += ` AND type = '${typeFilter}'`;
             }
             if (searchTerm) {
-                // Büyük/küçük harf duyarlılığını kaldırmak için LOWER kullanıyoruz
                 query += ` AND (LOWER(description) LIKE '%${searchTerm}%' OR LOWER(component) LIKE '%${searchTerm}%')`;
             }
-            
             query += ` ORDER BY date DESC`;
 
             try {
@@ -87,7 +84,7 @@
                 const rows = result.toArray();
                 renderUI(rows);
             } catch (queryErr) {
-                console.error("SQL Execution Error:", queryErr);
+                console.error("SQL Error:", queryErr);
             }
         }
 
@@ -116,11 +113,10 @@
             });
         }
 
-        // Event listener'ları güvenli bir şekilde bağla
+        // Event listener bağlantıları
         document.getElementById('typeFilter').addEventListener('change', fetchData);
         document.getElementById('search').addEventListener('input', fetchData);
         
-        // DOM hazır olduğunda motoru ateşle
         window.addEventListener('DOMContentLoaded', init);
     </script>
 </head>
